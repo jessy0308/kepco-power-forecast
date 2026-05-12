@@ -362,7 +362,7 @@ with tab2:
             st.plotly_chart(fig3, use_container_width=True)
             
             with st.expander("💡 실시간 예측 비즈니스 인사이트", expanded=True):
-                st.markdown("이 그래프는 기상청의 실제 **'내일 단기예보'** 데이터를 방금 API로 호출하여, 과거 2년간 학습된 Prophet 모델에 통과시킨 **진짜 실시간 미래 예측** 결과입니다. 내일 기온 변화에 따라 전력 피크가 어떻게 형성될지 시뮬레이션 해볼 수 있습니다.")
+                st.markdown("이 그래프는 기상청의 실제 **'내일 단기예보'** 데이터를 방금 API로 호출하여, 과거 1년간 학습된 Prophet 모델에 통과시킨 **진짜 실시간 미래 예측** 결과입니다. 내일 기온 변화에 따라 전력 피크가 어떻게 형성될지 시뮬레이션 해볼 수 있습니다.")
         else:
             st.error("학습된 Prophet 모델 파일이 없습니다.")
     else:
