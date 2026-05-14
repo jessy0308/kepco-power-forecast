@@ -134,6 +134,7 @@ def fetch_tomorrow_forecast():
 
 st.title("⚡ AI 기반 날씨 연계 전력수요 예측 대시보드")
 st.markdown("한국전력거래소(KPX)의 전력수요량과 기상청 실황 데이터를 융합하여 **Prophet AI 모델**로 예측한 결과를 시각화합니다.")
+st.info("📡 **실시간 기상청 API 연동 및 시스템 관제 기준일**: `2026년 5월 13일 ~ 현재` (라이브 단기예보 실시간 연동 중)")
 
 @st.cache_data
 def load_data():
@@ -501,25 +502,34 @@ else:
     context_str = "현재 전력 데이터 요약 정보가 없습니다."
     if not df_hist.empty and df_forecast is not None:
         latest_hist = df_hist.iloc[-1]
+        # 사용자 피드백 완벽 반영: 강력한 타임라인/계절 인지 룰 및 과거 예측 DB 컨텍스트 병합 주입
         context_str = f"""
-        [시스템 권한 및 데이터 컨텍스트]
-        당신은 한국전력거래소(KPX)의 데이터를 분석하는 최고 수준의 전력수요 분석 AI 에이전트입니다.
-        현재 대시보드에 전시된 데이터 현황은 다음과 같습니다:
-        - 최신 실황 기온: {latest_hist['temperature']}도, 습도: {latest_hist['humidity']}%, 풍속: {latest_hist['wind_speed']}m/s
-        - 최신 실황 전력수요: {latest_hist['power_demand']:,.0f} MW
-        - 최근 7일 구간 예측 AI 모델(Prophet)의 성능 지표: MAE {mae:,.2f} MW, MAPE {mape:.2f}%
+        [시스템 권한 및 강력한 페르소나 룰]
+        당신은 '2026년 5월(봄철)' 시점에서 근무하는 KEPCO 실시간 전력 관제 전문 AI 비서입니다.
+        절대 시점과 계절을 착각하지 마십시오. 아래 제공되는 '과거 학습 DB 최종 기록'은 2025년 백테스트용 실측 데이터일 뿐이므로, 이를 현재 실황 날씨로 오인하여 "단기간에 기온이 극심하게 급변한다"는 등의 왜곡된 환각 답변을 생성하지 마십시오.
+        현재 대시보드의 실시간 API 연동 기준일은 2026년 5월 13일 이후이므로, 평균 기온 23도 선은 지극히 정상적인 계절 흐름입니다.
+
+        [1. 과거 학습 및 백테스트 예측 DB 현황 (참고용 문맥)]
+        - 과거 실측 DB 최종 기록: 기온 {latest_hist['temperature']}도, 습도 {latest_hist['humidity']}%, 풍속 {latest_hist['wind_speed']}m/s (전력수요: {latest_hist['power_demand']:,.0f} MW)
+        - 최근 7일 백테스트 예측 모델(Prophet) 성능: MAE {mae:,.2f} MW, MAPE {mape:.2f}%
         """
         
+        if not df_forecast.empty:
+            min_pred = df_forecast['yhat'].min()
+            max_pred = df_forecast['yhat'].max()
+            context_str += f"        - 백테스트 구간 과거 예측수요 범위: 최소 {min_pred:,.0f} MW ~ 최대 {max_pred:,.0f} MW\n"
+            
         if 'forecast' in locals() and forecast is not None and not forecast.empty:
             peak_val = forecast['yhat'].max()
             peak_time = forecast.loc[forecast['yhat'].idxmax(), 'ds'].strftime('%Y-%m-%d %H:%M')
             mean_temp = df_tomorrow['temperature'].mean()
             context_str += f"""
-        - 🔮 내일의 미래 예측 상황: 평균 기온 {mean_temp:.1f}도 예상, 
-        - 🔮 내일 최대 전력수요 예측치: {peak_val:,.0f} MW (피크 발생 예상 시간: {peak_time})
+        [2. 📡 실시간 연동 미래 예측 상황 (타겟: 2026년 5월)]
+        - 내일의 단기예보 평균 기온: {mean_temp:.1f}도 예상 (정상적인 봄철 기온)
+        - 내일 최대 전력수요 예측치: {peak_val:,.0f} MW (피크 발생 예상 시간: {peak_time})
         """
         
-        context_str += "사용자가 묻는 질문에 위 수치와 전력 도메인 지식을 활용하여 한국어로 전문적이고 친절하게 답변해 주세요."
+        context_str += "\n사용자가 묻는 질문에 위 수치들을 입체적으로 비교하고 전력 도메인 지식을 활용하여, 한국어로 전문적이고 친절하게 답변해 주세요."
 
     # 채팅 세션 초기화
     if "messages" not in st.session_state:
