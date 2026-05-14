@@ -37,3 +37,8 @@ htmlcov/
 
 # Log files
 *.log
+# KEPCO 프로젝트 배포 제외 파일 목록
+forecast/data/daily_predictions/
+forecast/data/all_predictions_master.csv
+forecast/report/*.pptx
+forecast/src/create_presentation.py
